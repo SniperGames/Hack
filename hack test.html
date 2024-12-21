@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacker Game</title>
+    <style>
+        body {
+            background-color: black;
+            color: limegreen;
+            font-family: "Courier New", monospace;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 3rem;
+            margin-top: 30px;
+            font-family: "Courier New", monospace;
+            color: lime;
+        }
+
+        #startBtn {
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            background-color: #00ff00;
+            border: none;
+            color: black;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #startBtn:hover {
+            background-color: lime;
+        }
+
+        /* Filmik */
+        #videoContainer {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            justify-content: center;
+            align-items: center;
+            color: lime;
+        }
+
+        video {
+            object-fit: cover; /* Ustawienie, by film wypełnił cały ekran, zachowując proporcje */
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Styl terminala */
+        .terminal {
+            display: none;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 20px;
+            overflow-y: auto;
+            font-size: 1.5rem;
+            color: lime;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.6;
+        }
+
+        .password-section {
+            display: none;
+            text-align: center;
+            padding-top: 50px;
+        }
+
+        input {
+            padding: 15px;
+            font-size: 1.5rem;
+            background-color: #222;
+            color: lime;
+            border: 2px solid #00ff00;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            background-color: #222;
+            color: lime;
+            border: 2px solid #00ff00;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #00ff00;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>"Chcesz być schakowany?"</h1>
+
+    <!-- Przycisk Start -->
+    <button id="startBtn" onclick="startGame()">Start</button>
+
+    <!-- Kontener na film -->
+    <div id="videoContainer">
+        <video id="introVideo" muted>
+            <source src="Welcome to the Game - Hacking Alert.mp4" type="video/mp4">
+            Twoja przeglądarka nie wspiera tego formatu wideo.
+        </video>
+    </div>
+
+    <!-- Terminal -->
+    <div class="terminal" id="terminal"></div>
+
+    <!-- Sekcja z hasłem -->
+    <div class="password-section" id="passwordSection">
+        <p>Wpisz kod, aby przejść dalej:</p>
+        <input type="text" id="passwordInput" placeholder="Wpisz kod...">
+        <button onclick="checkPassword()">Zatwierdź</button>
+    </div>
+
+    <script>
+        // Funkcja do rozpoczęcia gry
+        function startGame() {
+            // Ukrywamy przycisk startowy
+            document.getElementById('startBtn').style.display = 'none';
+
+            // Wejście w tryb pełnoekranowy
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen(); // Standardowa funkcja
+            } else if (document.documentElement.mozRequestFullScreen) { // Firefox
+                document.documentElement.mozRequestFullScreen();
+            } else if (document.documentElement.webkitRequestFullscreen) { // Chrome, Safari
+                document.documentElement.webkitRequestFullscreen();
+            } else if (document.documentElement.msRequestFullscreen) { // IE/Edge
+                document.documentElement.msRequestFullscreen();
+            }
+
+            // Pokazujemy kontener z filmem
+            document.getElementById('videoContainer').style.display = 'flex';
+
+            // Włączamy dźwięk w filmie
+            const video = document.getElementById('introVideo');
+            video.muted = false;  // Włączenie dźwięku
+
+            // Rozpoczynamy odtwarzanie filmu
+            video.play();
+
+            // Po zakończeniu filmu rozpoczniemy hakowanie
+            video.onended = function() {
+                startHacking();
+            };
+        }
+
+        // Funkcja rozpoczynająca hakowanie
+        function startHacking() {
+            // Ukrywamy film
+            document.getElementById('videoContainer').style.display = 'none';
+
+            // Pokazujemy terminal i rozpoczniemy hakowanie
+            const terminal = document.getElementById('terminal');
+            terminal.style.display = 'block';
+            terminal.innerHTML = "<p>System uruchomiony...</p>";
+            terminal.innerHTML += "<p>Przeszukiwanie danych...</p>";
+            terminal.innerHTML += "<p>Znaleziono ślady systemu...</p>";
+
+            setTimeout(() => {
+                terminal.innerHTML += "<p>Przygotowanie do hakowania...</p>";
+                showGreenCode(); // Zielony kod
+                document.getElementById('passwordSection').style.display = 'block'; // Pokazuje sekcję z hasłem
+            }, 2000);
+        }
+
+        // Funkcja do wyświetlania kodu (jak w terminalu)
+        function showGreenCode() {
+            const terminal = document.getElementById('terminal');
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz";
+            const codeLength = 100;
+
+            let codeString = "";
+            let i = 0;
+            const code = () => {
+                codeString = "";
+                for (let j = 0; j < codeLength; j++) {
+                    codeString += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                terminal.innerHTML += codeString + "<br>";
+                i++;
+                if (i < 20) { // Wypisuje 20 linii kodu
+                    setTimeout(code, 200); // 200 ms między liniami
+                }
+            };
+            code();
+        }
+
+        // Funkcja sprawdzająca poprawność hasła
+        function checkPassword() {
+            const password = document.getElementById('passwordInput').value;
+            const terminal = document.getElementById('terminal');
+
+            if (password === '12345') {
+                terminal.innerHTML += "<p>Hasło poprawne! Zhakowano system!</p>";
+            } else {
+                terminal.innerHTML += "<p>Błąd! Niepoprawne hasło. Spróbuj ponownie.</p>";
+            }
+        }
+    </script>
+
+</body>
+</html>
