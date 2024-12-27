@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacker Game</title>
+    <style>
+        body {
+            background-color: black;
+            color: limegreen;
+            font-family: "Courier New", monospace;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        canvas {
+            display: none;
+        }
+
+        #startBtn {
+            margin-top: 300px;
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            background-color: #00ff00;
+            border: none;
+            color: black;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #startBtn:hover {
+            background-color: lime;
+        }
+
+        #videoContainer {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            justify-content: center;
+            align-items: center;
+            color: lime;
+        }
+
+        video {
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+        }
+
+        #successVideoContainer {
+            display: none;
+        }
+
+        #successMessage {
+            display: none;
+            font-size: 3rem;
+            text-align: center;
+            color: lime;
+        }
+
+        #timerCanvas {
+            position: absolute;
+            top: 20px;
+            width: 100px;
+            height: 100px;
+        }
+
+        #hackingCanvas {
+            margin-top: 150px;
+        }
+    </style>
+</head>
+<body>
+
+    <button id="startBtn" onclick="startGame()">Download<br>Grand Theft Auto 6</button>
+
+    <div id="videoContainer">
+        <video id="introVideo" muted>
+            <source src="Welcome to the Game - Hacking Alert.mp4" type="video/mp4">
+            Twoja przeglądarka nie wspiera tego formatu wideo.
+        </video>
+    </div>
+
+    <div id="successVideoContainer">
+        <video id="successVideo" muted>
+            <source src="Insta Hack Block.mp4" type="video/mp4">
+            Twoja przeglądarka nie wspiera tego formatu wideo.
+        </video>
+    </div>
+
+    <div id="successMessage">Udało ci się!</div>
+
+    <canvas id="timerCanvas" width="100" height="100"></canvas>
+
+    <canvas id="hackingCanvas" width="800" height="600"></canvas>
+
+    <script>
+        let hackingActive = false;
+        let position = { row: 0, col: 0 };
+        let direction = 1;
+        let hackingInterval;
+        const rows = [];
+        const totalDots = 20;
+        let maxRows;
+        let timerInterval;
+        const maxTime = 60; // Maksymalny czas na wykonanie hacku w sekundach
+        let timeLeft;
+        const timerCanvas = document.getElementById('timerCanvas');
+        const timerCtx = timerCanvas.getContext('2d');
+
+        function startGame() {
+            document.getElementById('startBtn').style.display = 'none';
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            }
+            document.getElementById('videoContainer').style.display = 'flex';
+            const video = document.getElementById('introVideo');
+            video.muted = false;
+            video.play();
+            video.onended = function() {
+                startHacking();
+            };
+        }
+
+        function generateRow() {
+            const redGroupSize = Math.floor(Math.random() * 4) + 1;
+            const redStart = Math.floor(Math.random() * (totalDots - redGroupSize + 1));
+            const redDots = Array.from({ length: redGroupSize }, (_, i) => redStart + i);
+            return redDots;
+        }
+
+        function generateRows() {
+            rows.length = 0;
+            maxRows = Math.floor(Math.random() * 10) + 1;
+            for (let i = 0; i < maxRows; i++) {
+                rows.push(generateRow());
+            }
+        }
+
+        function drawDots(ctx, canvas) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            rows.forEach((redDots, rowIndex) => {
+                const y = canvas.height / 2 - (maxRows / 2 - rowIndex) * 40;
+                for (let i = 0; i < totalDots; i++) {
+                    ctx.beginPath();
+                    ctx.arc(50 + i * 35, y, 10, 0, Math.PI * 2);
+                    ctx.fillStyle = redDots.includes(i) ? 'red' : 'green';
+                    ctx.fill();
+                    ctx.closePath();
+                }
+            });
+
+            const yPosition = canvas.height / 2 - (maxRows / 2 - position.row) * 40;
+            ctx.fillStyle = 'lime';
+            ctx.fillRect(50 + position.col * 35 - 5, yPosition - 20, 10, 40);
+        }
+
+        function updatePosition(ctx, canvas) {
+            if (position.col === 0) direction = 1;
+            if (position.col === totalDots - 1) direction = -1;
+            position.col += direction;
+            drawDots(ctx, canvas);
+        }
+
+        function startHacking() {
+            document.getElementById('videoContainer').style.display = 'none';
+            const canvas = document.getElementById('hackingCanvas');
+            canvas.style.display = 'block';
+            const ctx = canvas.getContext('2d');
+
+            generateRows();
+            startTimer();
+
+            function handleClick(e) {
+                if (rows[position.row].includes(position.col)) {
+                    rows.splice(position.row, 1);
+                    if (position.row >= rows.length) {
+                        clearInterval(hackingInterval);
+                        clearInterval(timerInterval);
+                        canvas.style.display = 'none';
+                        playSuccessVideo();
+                        return;
+                    }
+                } else {
+                    alert('Błąd! Kliknięcie w niewłaściwe miejsce.');
+                    clearInterval(hackingInterval);
+                    clearInterval(timerInterval);
+                    return;
+                }
+                drawDots(ctx, canvas);
+            }
+
+            canvas.addEventListener('click', handleClick);
+
+            position = { row: 0, col: 0 };
+            hackingInterval = setInterval(() => updatePosition(ctx, canvas), 200);
+        }
+
+        function startTimer() {
+            timerCanvas.style.display = 'block';
+            timeLeft = maxTime;
+            timerCtx.clearRect(0, 0, timerCanvas.width, timerCanvas.height);
+
+            timerInterval = setInterval(() => {
+                timeLeft -= 0.1;
+                drawTimer();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    clearInterval(hackingInterval);
+                    alert('Czas minął! Przegrana.');
+                }
+            }, 100);
+        }
+
+        function drawTimer() {
+            const angle = ((maxTime - timeLeft) / maxTime) * 2 * Math.PI;
+            timerCtx.clearRect(0, 0, timerCanvas.width, timerCanvas.height);
+
+            // Obramowanie kółka
+            timerCtx.beginPath();
+            timerCtx.arc(50, 50, 45, 0, 2 * Math.PI);
+            timerCtx.strokeStyle = 'lime';
+            timerCtx.lineWidth = 5;
+            timerCtx.stroke();
+
+            // Czarny sektor
+            timerCtx.beginPath();
+            timerCtx.moveTo(50, 50);
+            timerCtx.arc(50, 50, 45, -Math.PI / 2, -Math.PI / 2 + angle, false);
+            timerCtx.closePath();
+            timerCtx.fillStyle = 'black';
+            timerCtx.fill();
+
+            // Zielone tło
+            timerCtx.globalCompositeOperation = "destination-over";
+            timerCtx.beginPath();
+            timerCtx.arc(50, 50, 45, 0, 2 * Math.PI);
+            timerCtx.fillStyle = 'lime';
+            timerCtx.fill();
+            timerCtx.globalCompositeOperation = "source-over";
+        }
+
+        function playSuccessVideo() {
+            const successContainer = document.getElementById('successVideoContainer');
+            const successVideo = document.getElementById('successVideo');
+            successContainer.style.display = 'flex';
+            successVideo.muted = false;
+            successVideo.play();
+            successVideo.onended = function() {
+                document.getElementById('successMessage').style.display = 'block';
+            };
+        }
+    </script>
+</body>
+</html>
